@@ -23,7 +23,8 @@ class TestGithubOrgClient(unittest.TestCase):
         mock_fn.assert_called_once_with("https://api.github.com/orgs/{}".format(org))
     
     def test_public_repos_url(self) -> None:
-        """Tests the _public_repos_url property."""
+        """ Tests the _public_repos_url property.
+        """
         with patch("client.GithubOrgClient.org", new_callable=PropertyMock,) as mock_org:
             mock_org.return_value = {'repos_url': "https://api.github.com/users/google/repos"}
             self.assertEqual(
@@ -33,7 +34,8 @@ class TestGithubOrgClient(unittest.TestCase):
     
     @patch("client.get_json")
     def test_public_repos(self, mock_get_json: MagicMock) -> None:
-        """Tests the public_repos method."""
+        """ Tests the public_repos method.
+        """
         test_payload = {
             'repos_url': "https://api.github.com/users/google/repos",
             'repos': [
@@ -86,3 +88,13 @@ class TestGithubOrgClient(unittest.TestCase):
             )
             mock_public_repos_url.assert_called_once()
         mock_get_json.assert_called_once()
+
+    @parameterized.expand([
+        ({'license': {'key': "bsd-3-clause"}}, "bsd-3-clause", True),
+        ({'license': {'key': "bsl-1.0"}}, "bsd-3-clause", False),
+    ])
+    def test_has_license(self, repo: Dict, key: str, expected: bool) -> None:
+        """ Tests the `has_license` method.
+        """
+        github_org_client = GithubOrgClient("google")
+        self.assertEqual(github_org_client.has_license(repo, key), expected)
